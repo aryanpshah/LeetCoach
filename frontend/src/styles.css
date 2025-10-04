@@ -36,10 +36,6 @@ a:hover {
   backdrop-filter: blur(6px);
 }
 
-.navbar-brand img {
-  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.55));
-}
-
 .nav-link.active {
   color: var(--accent-green) !important;
 }
@@ -138,19 +134,28 @@ footer {
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+.navbar-brand .header-logo {
+  height: clamp(4rem, 7.2vh, 6rem);
+  width: auto;
+  max-width: clamp(14rem, 28vw, 22rem);
+  object-fit: contain;
+}
+
+.header-logo {
+  height: clamp(4rem, 7.2vh, 6rem);
+  width: auto;
+  max-width: clamp(14rem, 28vw, 22rem);
+  object-fit: contain;
+}
+
+.navbar.bg-dark {
+  background-color: #0f1115 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
 section {
   scroll-margin-top: 96px;
 }
 
-.logo-mark {
-  width: 52px;
-  height: 52px;
-  object-fit: contain;
-  border-radius: 0.65rem;
-  background-color: rgba(0, 0, 0, 0.3);
-  padding: 4px;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
-}
 .problem-select {
   min-height: calc(100vh - 136px);
 }
@@ -459,3 +464,9 @@ section {
     min-height: auto;
   }
 }
+
+
+
+
+
+

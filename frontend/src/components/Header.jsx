@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+﻿import { Link, NavLink } from "react-router-dom";
 import logo from "../assets/leetcoach-logo.png";
 
 export default function Header() {
@@ -6,7 +6,7 @@ export default function Header() {
     <nav className="navbar navbar-expand navbar-dark bg-dark border-bottom border-secondary sticky-top px-3">
       <div className="container">
         <Link to="/" className="navbar-brand d-flex align-items-center" aria-label="LeetCoach home">
-          <img src={logo} alt="LeetCoach" width="40" height="40" className="logo-mark" />
+          <img src={logo} alt="LeetCoach logo" className="header-logo" />
         </Link>
         <div className="ms-auto">
           <ul className="navbar-nav">
