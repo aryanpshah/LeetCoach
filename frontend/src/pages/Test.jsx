@@ -30,6 +30,7 @@ export default function Test() {
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const mediaStreamRef = useRef(null);
+  const recordingStreamRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -49,8 +50,12 @@ export default function Test() {
   const [remaining, setRemaining] = useState(timeLimitSec);
 
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    } else if (recordingStreamRef.current) {
+      recordingStreamRef.current.getTracks().forEach((track) => track.stop());
+      recordingStreamRef.current = null;
     }
     setRecording(false);
     if (timerRef.current) {
@@ -126,6 +131,12 @@ export default function Test() {
     return `${minutes}:${secs}`;
   };
 
+  const selectMimeType = () => {
+    if (typeof MediaRecorder === "undefined") return null;
+    const candidates = ["video/webm;codecs=vp8,opus", "video/webm;codecs=vp9,opus", "video/webm"];
+    return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || null;
+  };
+
   const handleStart = async () => {
     setErrorMsg("");
     setUploadError("");
@@ -139,13 +150,25 @@ export default function Test() {
       setShowUpload(false);
       setHintVisible(false);
       setVideoBlob(null);
-      setRecording(true);
       setRemaining(timeLimitSec);
-      startTimer();
 
+      const previewStream = mediaStreamRef.current;
+      const recordingStream = new MediaStream(
+        previewStream.getTracks().map((track) => track.clone())
+      );
+      recordingStreamRef.current = recordingStream;
+
+      const mimeType = selectMimeType();
       chunksRef.current = [];
-      const recorder = new MediaRecorder(mediaStreamRef.current, { mimeType: "video/webm;codecs=vp9,opus" });
+      const recorder = mimeType
+        ? new MediaRecorder(recordingStream, { mimeType })
+        : new MediaRecorder(recordingStream);
       mediaRecorderRef.current = recorder;
+
+      recorder.onstart = () => {
+        setRecording(true);
+        startTimer();
+      };
 
       recorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
@@ -156,13 +179,37 @@ export default function Test() {
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "video/webm" });
         setVideoBlob(blob);
+        if (recordingStreamRef.current) {
+          recordingStreamRef.current.getTracks().forEach((track) => track.stop());
+          recordingStreamRef.current = null;
+        }
       };
 
-      recorder.start(200);
+      recorder.onerror = (event) => {
+        console.error(event.error || event);
+        setErrorMsg("Recording error occurred. Please try again.");
+        setRecording(false);
+      };
+
+      if (videoRef.current) {
+        if (videoRef.current.srcObject !== previewStream) {
+          videoRef.current.srcObject = previewStream;
+        }
+        const playPromise = videoRef.current.play?.();
+        if (playPromise && typeof playPromise.then === "function") {
+          await playPromise.catch(() => {});
+        }
+      }
+
+      recorder.start(500);
     } catch (err) {
       console.error(err);
       setErrorMsg("Failed to start recording.");
       setRecording(false);
+      if (recordingStreamRef.current) {
+        recordingStreamRef.current.getTracks().forEach((track) => track.stop());
+        recordingStreamRef.current = null;
+      }
     }
   };
 
@@ -295,15 +342,20 @@ export default function Test() {
                   <div className="locked-content">
                     <strong>Hint:</strong> {problem.hint}
                   </div>
-                  {!hintVisible && (
-                    <button
-                      type="button"
-                      className="locked-overlay locked-overlay--cta"
-                      onClick={() => setHintVisible(true)}
-                    >
-                      Click to reveal hint
-                    </button>
-                  )}
+                  {!hintVisible &&
+                    (hasStarted ? (
+                      <button
+                        type="button"
+                        className="locked-overlay locked-overlay--cta"
+                        onClick={() => setHintVisible(true)}
+                      >
+                        Click to reveal hint
+                      </button>
+                    ) : (
+                      <div className="locked-overlay locked-overlay--info">
+                        Start recording to reveal the hint
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>
@@ -393,4 +445,12 @@ export default function Test() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
 

@@ -321,6 +321,15 @@ section {
   gap: 1.5rem;
 }
 
+
+.test-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  background: #050608;
+}
+
 .test-card__content {
   flex: 1;
   display: flex;
@@ -470,3 +479,32 @@ section {
 
 
 
+
+.locked-overlay--info {
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.hero-chunk-copper {
+  color: #d6893a;
+  text-shadow: 0 6px 18px rgba(214, 137, 58, 0.3);
+}
+
+.hero-chunk-burnt {
+  color: #b86f30;
+  text-shadow: 0 6px 18px rgba(184, 111, 48, 0.32);
+}
+
+.hero-chunk-emerald {
+  color: #74d468;
+  text-shadow: 0 10px 26px rgba(116, 212, 104, 0.38);
+}
+
+.hero-chunk-green {
+  color: #6ad96c;
+  text-shadow: 0 10px 26px rgba(106, 217, 108, 0.36);
+}
