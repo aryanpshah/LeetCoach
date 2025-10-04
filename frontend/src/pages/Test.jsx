@@ -2,7 +2,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { PROBLEMS } from "../lib/problems";
 
-const BACKEND_URL = "http://127.0.0.1:8000/api/analyze"; // TODO: replace with deployed backend URL when available.
+const BACKEND_URL = "http://127.0.0.1:61067/audio/"; // TODO: replace with deployed backend URL when available.
 
 const buildFallbackReport = (problemId) => ({
   session_id: `demo-${problemId}-${Date.now()}`,
