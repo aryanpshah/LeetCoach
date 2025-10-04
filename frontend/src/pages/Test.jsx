@@ -2,7 +2,8 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { PROBLEMS } from "../lib/problems";
 
-const BACKEND_URL = "http://127.0.0.1:61067/audio/"; // TODO: replace with deployed backend URL when available.
+const BACKEND_URL_AUDIO = "http://127.0.0.1:8000/audio"; // TODO: replace with deployed backend URL when available.
+const BACKEND_URL_VIDEO = "http://127.0.0.1:8000/video"
 
 const buildFallbackReport = (problemId) => ({
   session_id: `demo-${problemId}-${Date.now()}`,
@@ -203,7 +204,7 @@ export default function Test() {
       payload.append("problem_id", problem.id);
       payload.append("duration_sec", String(timeLimitSec));
 
-      const response = await fetch(BACKEND_URL, {
+      const response = await fetch(BACKEND_URL_VIDEO, {
         method: "POST",
         body: payload
       });
