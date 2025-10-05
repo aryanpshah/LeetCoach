@@ -47,7 +47,7 @@ export default function Landing() {
               <div className="card-body">
                 <span className="feature-icon mb-3" aria-hidden="true">5</span>
                 <h5 className="card-title">5-Part Report</h5>
-                <p className="card-text mb-0">Receive scores across accuracy, confidence, efficiency, communication, professionalism.</p>
+                <p className="card-text mb-0">Receive scores across accuracy, confidence, clarity, communication, professionalism.</p>
               </div>
             </div>
           </div>

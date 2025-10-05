@@ -14,6 +14,7 @@ from typing import Annotated
 import json
 import re
 import os
+import io
 import cv2
 
 app = FastAPI()
@@ -172,7 +173,7 @@ def video(
 def video(
     video: Annotated[UploadFile, File()],
     code: Annotated[UploadFile, File()] = None,
-    problem_id: Annotated[str, Form()] = None,
+    problem_statement: Annotated[str, Form()] = None,
     duration_sec: Annotated[str, Form()] = None
 ):
 
@@ -508,7 +509,7 @@ def video(
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     response = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents="You are a LeetCode interview assistant, who gives constructive feedback on the visual body language analysis and provides three scores from 0 to 100 for energy, communication, and confidence based on the following response: " + sentiment_summary.to_string(index=False) + "Return your response as a JSON object using only the categories \"energy\", \"communication\", and \"confidence\".",
+        contents="You are a LeetCode interview assistant, who gives constructive feedback on the visual body language analysis and provides two scores from 0 to 100 for engagement and confidence based on the following response: " + sentiment_summary.to_string(index=False) + "Return your response as a JSON object using only the categories \"engagement\" and \"confidence\".",
     )
     print(response.text)
     # Convert (parse) JSON string → Python dictionary
@@ -529,9 +530,93 @@ def video(
     # --- proceed with rest of your MediaPipe + CV processing logic ---
 
     cap.release()
-    os.remove(temp_video_path)
 
-    return {"status": "success", **data}
+    problem_statement = str(problem_statement)
+
+    #Code analyzer
+    text_file = io.TextIOWrapper(code.file, encoding="utf-8")
+    code_str = text_file.read()
+    # question = "Two sum"
+    # Prepare prompt for Gemini
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents="You are a LeetCode interview assistant, who provides one score from 0 to 100 for accuracy based on the following question and response: Q: " + problem_statement + "A: " + code_str + "Return your response as a JSON object using only the category \"Accuracy\".",
+    )
+    print(response.text)
+    # Convert (parse) JSON string → Python dictionary
+    match = re.search(r'\{.*?\}', response.text, re.DOTALL)
+    if match:
+        json_str = match.group(0)
+        print("Unparsed scores:", json_str)
+        json_str = json_str.replace("\\", "\\\\")
+        json_str = json_str.replace("`", "\'")
+        json_str = json_str.lower()
+        data_code = json.loads(json_str)
+        print("Parsed scores:", data_code)
+    else:
+        print("No valid JSON found in response.")
+
+    #Audio
+
+    """# Parameters
+    fs = 44100  # Sample rate (samples per second)
+    seconds = 5  # Duration of recording
+
+    print("Recording...")
+    recording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
+    sd.wait()  # Wait until recording is finished
+    print("Recording finished.")
+
+    # Save as WAV file
+    write("output.wav", fs, recording)
+    print("Saved as output.wav")"""
+
+    model = whisper.load_model("turbo")
+    result = model.transcribe(temp_video_path)
+    os.remove(temp_video_path)
+    print(result["text"])
+
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents="You are a LeetCode interview assistant, who gives constructive feedback on the user's answer and provides two scores from 0 to 100 for communication and clarity based on the following response: " + result["text"] + "Return your response as a JSON object using only the categories \"general\", \"communication\", and \"clarity\". Do not give feedback for each score, just one general one.",
+    )
+    print(response.text)
+    # Convert (parse) JSON string → Python dictionary
+    match = re.search(r'\{.*?\}', response.text, re.DOTALL)
+    if match:
+        json_str = match.group(0)
+        data_audio = json.loads(json_str)
+        print("Parsed scores:", data_audio)
+    else:
+        print("No valid JSON found in response.")
+
+    return {"status": "success", **data, **data_code, **data_audio}
+
+@app.post("/analyze")
+async def analyze_solution(question: str = Form(...), file: UploadFile = Form(...)):
+    # Read the uploaded Python file
+    code_bytes = await file.read()
+    code_str = code_bytes.decode("utf-8")
+
+    # Prepare prompt for Gemini
+    client = genai.Client(api_key="AIzaSyBTyeY_i71cCx8CHNoN1uX9jvtHKS9VthA")
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents="You are a LeetCode interview assistant, who gives constructive feedback on leetcode coding solution and provides three scores from 0 to 100 for Accuracy, Efficiency, and Code Quality based on the following response: " + question + file.toString() + "Return your response as a JSON object using only the categories \"Accuracy\", \"Efficiency\", and \"Code Quality\".",
+    )
+    print(response.text)
+    # Convert (parse) JSON string → Python dictionary
+    match = re.search(r'\{.*?\}', response.text, re.DOTALL)
+    if match:
+        json_str = match.group(0)
+        data = json.loads(json_str)
+        print("Parsed scores:", data)
+    else:
+        print("No valid JSON found in response.")
+
+    return {"status": "success", "data": match}
 
 
 @app.get("/audio")
