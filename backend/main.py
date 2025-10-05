@@ -9,6 +9,7 @@ import csv
 import pandas as pd
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from typing import Annotated
 import json
 import re
@@ -514,13 +515,16 @@ def video(
     )
     print(response.text)
     # Convert (parse) JSON string → Python dictionary
-    match = re.search(r'\{.*?\}', response.text, re.DOTALL)
-    if match:
-        json_str = match.group(0)
-        data = json.loads(json_str)
-        print("Parsed scores:", data)
-    else:
-        print("No valid JSON found in response.")
+    try:
+        match = re.search(r'\{.*?\}', response.text, re.DOTALL)
+        if match:
+            json_str = match.group(0)
+            data = json.loads(json_str)
+        else:
+            return JSONResponse(status_code=400, content={"error": "Invalid JSON from Gemini"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": "Failed to parse response"})
+
 
     # Now you can use it like a normal Python dict
     #return data
@@ -530,8 +534,6 @@ def video(
 
     cap.release()
     os.remove(temp_video_path)
-
-    
 
     return {"status": "success", **data}
 
