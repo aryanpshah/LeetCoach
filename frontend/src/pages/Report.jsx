@@ -2,13 +2,13 @@
 import { useMemo } from "react";
 import { PROBLEMS } from "../lib/problems";
 
-const CAT_ORDER = ["accuracy", "communication", "confidence", "efficiency", "engagement"];
+const CAT_ORDER = ["accuracy", "communication", "confidence", "clarity", "engagement"];
 
 const LABELS = {
   accuracy: "Accuracy",
   communication: "Communication",
   confidence: "Confidence",
-  efficiency: "Efficiency",
+  clarity: "Clarity",
   engagement: "Engagement"
 };
 
@@ -16,15 +16,15 @@ const HELP = {
   accuracy: "How correct your approach and edge-case handling were.",
   communication: "Clarity and structure explaining approach, constraints, and tests.",
   confidence: "Delivery presence and steadiness in voice and posture.",
-  efficiency: "Time/space complexity and quality of tradeoffs.",
+  clarity: "Specific details and concise yet clear answers.",
   engagement: "Eye contact, pacing, and responsiveness to the prompt."
 };
 
 const KEY_PATTERNS = [
   { key: "accuracy", tokens: ["accuracy", "correct", "quality", "tests", "coverage"] },
-  { key: "communication", tokens: ["communication", "clarity", "speech", "verbal", "explanation"] },
+  { key: "communication", tokens: ["communication", "speech", "verbal", "explanation"] },
   { key: "confidence", tokens: ["confidence", "presence", "poise", "steadiness"] },
-  { key: "efficiency", tokens: ["efficiency", "complexity", "runtime", "speed", "performance"] },
+  { key: "clarity", tokens: ["clarity", "complexity", "comprehension", "speed", "performance"] },
   { key: "engagement", tokens: ["engagement", "energy", "attentive", "professionalism", "professional", "eye contact", "posture"] }
 ];
 
@@ -32,7 +32,7 @@ const DEFAULT_FEEDBACK = {
   accuracy: "We could not evaluate code accuracy for this run. Re-upload your solution to unlock this score.",
   communication: "Speech analysis data was limited. Ensure the microphone is enabled so we can grade communication.",
   confidence: "Camera cues were inconclusive, so confidence could not be fully assessed this time.",
-  efficiency: "Runtime and complexity checks are pending. Submit code for automated efficiency feedback.",
+  clarity: "Runtime and complexity checks are pending. Submit code for automated clarity feedback.",
   engagement: "We need more consistent video cues to assess engagement. Keep your camera centered and well lit next time."
 };
 
