@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+gunicorn
+python-multipart
+sounddevice
+scipy
+openai-whisper
+google-genai
+regex
+mediapipe
+pandas
+opencv-python
