@@ -601,7 +601,7 @@ async def analyze_solution(question: str = Form(...), file: UploadFile = Form(..
     code_str = code_bytes.decode("utf-8")
 
     # Prepare prompt for Gemini
-    client = genai.Client(api_key="AIzaSyBTyeY_i71cCx8CHNoN1uX9jvtHKS9VthA")
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents="You are a LeetCode interview assistant, who gives constructive feedback on leetcode coding solution and provides three scores from 0 to 100 for Accuracy, Efficiency, and Code Quality based on the following response: " + question + file.toString() + "Return your response as a JSON object using only the categories \"Accuracy\", \"Efficiency\", and \"Code Quality\".",
