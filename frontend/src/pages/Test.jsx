@@ -7,19 +7,25 @@ const BACKEND_URL_VIDEO = "http://127.0.0.1:8000/video"
 
 const buildFallbackReport = (problemId) => ({
   session_id: `demo-${problemId}-${Date.now()}`,
+  problem_id: problemId,
+  status: "mock",
+  meta: {
+    duration_sec: 600,
+    took_sec: 540
+  },
   scores: {
     accuracy: 82,
+    communication: 86,
     confidence: 74,
-    efficiency: 78,
-    communication: 85,
-    professionalism: 81
+    efficiency: 79,
+    engagement: 80
   },
   feedback: {
     accuracy: "Solid explanation of the core logic. Mention more edge cases next time.",
+    communication: "Structure is strong. Continue narrating data structures as you use them.",
     confidence: "Delivery is calm and clear. Keep eye contact up throughout.",
     efficiency: "Good asymptotic reasoning; call out trade-offs explicitly.",
-    communication: "Structure is strong. Continue narrating data structures as you use them.",
-    professionalism: "Great close. Consider summarizing time/space before handing off."
+    engagement: "Nice pacing and focus. Maintain that energy during your summary wrap-up."
   }
 });
 
