@@ -16,14 +16,14 @@ const buildFallbackReport = (problemId) => ({
     accuracy: 82,
     communication: 86,
     confidence: 74,
-    efficiency: 79,
+    clarity: 79,
     engagement: 80
   },
   feedback: {
     accuracy: "Solid explanation of the core logic. Mention more edge cases next time.",
     communication: "Structure is strong. Continue narrating data structures as you use them.",
     confidence: "Delivery is calm and clear. Keep eye contact up throughout.",
-    efficiency: "Good asymptotic reasoning; call out trade-offs explicitly.",
+    clarity: "Good asymptotic reasoning; call out trade-offs explicitly.",
     engagement: "Nice pacing and focus. Maintain that energy during your summary wrap-up."
   }
 });
@@ -355,7 +355,7 @@ export default function Test() {
       payload.append("video", videoBlob, `${id}.webm`);
       payload.append("audio", audioBlob, `${id}-audio.webm`);
       payload.append("code", codeFile, codeFile.name);
-      payload.append("problem_id", problem.id);
+      payload.append("problem_statement", problem.statement);
       payload.append("duration_sec", String(timeLimitSec));
 
       const response = await fetch(BACKEND_URL_VIDEO, {

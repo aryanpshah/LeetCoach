@@ -14,6 +14,7 @@ from typing import Annotated
 import json
 import re
 import os
+import io
 import cv2
 
 app = FastAPI()
@@ -173,7 +174,7 @@ def video(
 def video(
     video: Annotated[UploadFile, File()],
     code: Annotated[UploadFile, File()] = None,
-    problem_id: Annotated[str, Form()] = None,
+    problem_statement: Annotated[str, Form()] = None,
     duration_sec: Annotated[str, Form()] = None
 ):
 
@@ -546,7 +547,7 @@ def video(
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     response = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents="You are a LeetCode interview assistant, who gives constructive feedback on the visual body language analysis and provides three scores from 0 to 100 for energy, communication, and confidence based on the following response: " + sentiment_summary.to_string(index=False) + "Return your response as a JSON object using only the categories \"energy\", \"communication\", and \"confidence\".",
+        contents="You are a LeetCode interview assistant, who gives constructive feedback on the visual body language analysis and provides two scores from 0 to 100 for engagement and confidence based on the following response: " + sentiment_summary.to_string(index=False) + "Return your response as a JSON object using only the categories \"engagement\" and \"confidence\".",
     )
     print(response.text)
     # Convert (parse) JSON string → Python dictionary
@@ -569,7 +570,6 @@ def video(
     # --- proceed with rest of your MediaPipe + CV processing logic ---
 
     cap.release()
-    os.remove(temp_video_path)
 
     payload = {"status": "success", **data}
     if audio_transcript:
