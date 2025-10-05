@@ -86,6 +86,7 @@ def infer_sentiment(row):
 
 # ------------------ POST /video ------------------
 
+"""
 @app.post("/video")
 def video(
     video: Annotated[UploadFile, File()],
@@ -164,6 +165,7 @@ def video(
         print(traceback.format_exc())
         return {"status": "error", "detail": str(e)}
 """
+
 @app.post("/video")
 def video(
     video: Annotated[UploadFile, File()],
@@ -528,7 +530,12 @@ def video(
 
     cap.release()
     os.remove(temp_video_path)
-"""
+
+    
+
+    return {"status": "success", **data}
+
+
 @app.get("/audio")
 async def audio():
     # Parameters
