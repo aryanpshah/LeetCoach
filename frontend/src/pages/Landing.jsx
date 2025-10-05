@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function Landing() {
   return (
@@ -45,9 +45,9 @@ export default function Landing() {
           <div className="col-12 col-md-4">
             <div className="card h-100 bg-dark text-light shadow-sm border border-secondary">
               <div className="card-body">
-                <span className="feature-icon mb-3" aria-hidden="true">5</span>
-                <h5 className="card-title">5-Part Report</h5>
-                <p className="card-text mb-0">Receive scores across accuracy, confidence, efficiency, communication, professionalism.</p>
+                <span className="feature-icon feature-icon-wide mb-3" aria-hidden="true">24/7</span>
+                <h5 className="card-title">Always-On Coaching</h5>
+                <p className="card-text mb-0">Practice anytime with personable guidance that adapts to you every session.</p>
               </div>
             </div>
           </div>
@@ -56,4 +56,3 @@ export default function Landing() {
     </main>
   );
 }
-

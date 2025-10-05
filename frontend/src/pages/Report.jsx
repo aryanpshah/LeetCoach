@@ -1,4 +1,4 @@
-﻿import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMemo } from "react";
 import { PROBLEMS } from "../lib/problems";
 
@@ -376,7 +376,6 @@ export default function Report() {
   }, [normalized.scores]);
 
   const missingLabels = normalized.missing.map((key) => LABELS[key]);
-  const isMock = state?.isMock || normalized.is_mock;
 
   const downloadJSON = () => {
     const blob = new Blob([JSON.stringify(normalized, null, 2)], { type: "application/json" });
@@ -396,12 +395,6 @@ export default function Report() {
             <strong className="me-2">Analysis failed.</strong>
             {normalized.detail || "Please retry your session once the backend is available."}
           </div>
-        </div>
-      )}
-
-      {isMock && (
-        <div className="alert alert-info" role="alert">
-          Showing a mock report while backend services are offline.
         </div>
       )}
 
@@ -466,9 +459,6 @@ export default function Report() {
         <button className="btn btn-primary" onClick={() => navigate("/select")}>
           Try Another Problem
         </button>
-        <button className="btn btn-outline-light" onClick={downloadJSON}>
-          Download JSON
-        </button>
         {normalized.preview_url && (
           <a className="btn btn-outline-secondary" href={normalized.preview_url} target="_blank" rel="noreferrer">
             Rewatch
@@ -478,3 +468,7 @@ export default function Report() {
     </main>
   );
 }
+
+
+
+
