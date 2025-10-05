@@ -1,0 +1,31 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.env
+
+# Node/React
+node_modules/
+dist/
+build/
+*.log
+.eslintcache
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Misc binaries we never want in git
+*.dll
+*.lib
+*.pdb
+*.mp4
+*.zip
+*.tar
