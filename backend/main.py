@@ -12,20 +12,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Annotated
 import json
 import re
+import os
 
 app = FastAPI()
-
-# Allow requests from your frontend (React)
-origins = [
-    "http://localhost:5173"  # React dev server
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["https://your-frontend.vercel.app", "http://localhost:5173"],
+    allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
+
+@app.get("/api/health")
+def health():
+    return {"ok": True}
+
 
 def extract_landmarks(results, frame_idx):
     data = []
@@ -504,7 +505,7 @@ def video(
     # Display the table
     #print(sentiment_summary.to_string(index=False))
 
-    client = genai.Client(api_key="AIzaSyBTyeY_i71cCx8CHNoN1uX9jvtHKS9VthA")
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents="You are a LeetCode interview assistant, who gives constructive feedback on the visual body language analysis and provides three scores from 0 to 100 for energy, communication, and confidence based on the following response: " + sentiment_summary.to_string(index=False) + "Return your response as a JSON object using only the categories \"energy\", \"communication\", and \"confidence\".",
@@ -547,7 +548,7 @@ async def audio():
     result = model.transcribe("output.wav")
     print(result["text"])
 
-    client = genai.Client(api_key="AIzaSyBTyeY_i71cCx8CHNoN1uX9jvtHKS9VthA")
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents="You are a LeetCode interview assistant, who gives constructive feedback on the user's answer and provides three scores from 0 to 10 for communication, clarity, and accuracy based on the following response: " + result["text"] + "Return your response as a JSON object using only the categories \"general\", \"communication\", \"clarity\", and \"accuracy\". Do not give feedback for each score, just one general one.",
