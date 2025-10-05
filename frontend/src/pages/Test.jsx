@@ -2,8 +2,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { PROBLEMS } from "../lib/problems";
 
-const BACKEND_URL_AUDIO = "http://127.0.0.1:8000/audio"; // TODO: replace with deployed backend URL when available.
-const BACKEND_URL_VIDEO = "http://127.0.0.1:8000/video"
+const BACKEND_URL_VIDEO = "http://127.0.0.1:8000/video";
 
 const buildFallbackReport = (problemId) => ({
   session_id: `demo-${problemId}-${Date.now()}`,
@@ -39,11 +38,15 @@ export default function Test() {
   const mediaStreamRef = useRef(null);
   const recordingStreamRef = useRef(null);
   const chunksRef = useRef([]);
+  const audioRecorderRef = useRef(null);
+  const audioStreamRef = useRef(null);
+  const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const [recording, setRecording] = useState(false);
   const [videoBlob, setVideoBlob] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
   const [permOK, setPermOK] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [hasStarted, setHasStarted] = useState(false);
@@ -64,6 +67,15 @@ export default function Test() {
       recordingStreamRef.current.getTracks().forEach((track) => track.stop());
       recordingStreamRef.current = null;
     }
+
+    const audioRecorder = audioRecorderRef.current;
+    if (audioRecorder && audioRecorder.state !== "inactive") {
+      audioRecorder.stop();
+    } else if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach((track) => track.stop());
+      audioStreamRef.current = null;
+    }
+
     setRecording(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -114,6 +126,10 @@ export default function Test() {
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach((track) => track.stop());
       }
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach((track) => track.stop());
+        audioStreamRef.current = null;
+      }
     };
   }, [stopRecording]);
 
@@ -124,6 +140,7 @@ export default function Test() {
     setShowTimesUp(false);
     setShowUpload(false);
     setVideoBlob(null);
+    setAudioBlob(null);
     setErrorMsg("");
     setUploadError("");
     if (fileInputRef.current) {
@@ -144,6 +161,14 @@ export default function Test() {
     return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || null;
   };
 
+  const selectAudioMimeType = () => {
+    if (typeof MediaRecorder === "undefined") return null;
+    const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"];
+    return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || null;
+  };
+
+
+
   const handleStart = async () => {
     setErrorMsg("");
     setUploadError("");
@@ -157,6 +182,7 @@ export default function Test() {
       setShowUpload(false);
       setHintVisible(false);
       setVideoBlob(null);
+      setAudioBlob(null);
       setRemaining(timeLimitSec);
 
       const previewStream = mediaStreamRef.current;
@@ -164,6 +190,63 @@ export default function Test() {
         previewStream.getTracks().map((track) => track.clone())
       );
       recordingStreamRef.current = recordingStream;
+
+      const audioTracks = previewStream.getAudioTracks();
+      let audioRecorder = null;
+      let audioMimeType = null;
+      let resolvedAudioType = "audio/webm";
+      audioChunksRef.current = [];
+
+      if (audioTracks.length > 0) {
+        audioMimeType = selectAudioMimeType();
+        const audioStream = new MediaStream(audioTracks.map((track) => track.clone()));
+        audioStreamRef.current = audioStream;
+        try {
+          audioRecorder = audioMimeType
+            ? new MediaRecorder(audioStream, { mimeType: audioMimeType })
+            : new MediaRecorder(audioStream);
+          audioRecorderRef.current = audioRecorder;
+        } catch (err) {
+          console.error(err);
+          setErrorMsg("Audio recording could not start. Please check microphone permissions.");
+          audioStream.getTracks().forEach((track) => track.stop());
+          audioStreamRef.current = null;
+          audioRecorderRef.current = null;
+        }
+      } else {
+        audioStreamRef.current = null;
+        audioRecorderRef.current = null;
+      }
+
+      if (audioRecorder) {
+        resolvedAudioType =
+          (audioRecorder.mimeType && audioRecorder.mimeType.length > 0
+            ? audioRecorder.mimeType
+            : audioMimeType) || "audio/webm";
+        audioRecorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+        audioRecorder.onstop = () => {
+          if (audioStreamRef.current) {
+            audioStreamRef.current.getTracks().forEach((track) => track.stop());
+            audioStreamRef.current = null;
+          }
+          if (audioChunksRef.current.length > 0) {
+            setAudioBlob(new Blob(audioChunksRef.current, { type: resolvedAudioType }));
+          } else {
+            setAudioBlob(null);
+          }
+          audioRecorderRef.current = null;
+        };
+        audioRecorder.onerror = (event) => {
+          console.error(event.error || event);
+          setErrorMsg("Audio recording error occurred. Please try again.");
+        };
+      } else {
+        setAudioBlob(null);
+      }
 
       const mimeType = selectMimeType();
       chunksRef.current = [];
@@ -208,6 +291,14 @@ export default function Test() {
         }
       }
 
+      if (audioRecorder) {
+        try {
+          audioRecorder.start(1000);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
       recorder.start(500);
     } catch (err) {
       console.error(err);
@@ -217,6 +308,11 @@ export default function Test() {
         recordingStreamRef.current.getTracks().forEach((track) => track.stop());
         recordingStreamRef.current = null;
       }
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach((track) => track.stop());
+        audioStreamRef.current = null;
+      }
+      audioRecorderRef.current = null;
     }
   };
 
@@ -244,6 +340,10 @@ export default function Test() {
       setUploadError("No recorded video found. Please try again.");
       return;
     }
+    if (!audioBlob) {
+      setUploadError("No recorded audio found. Please re-record with microphone enabled.");
+      return;
+    }
     const codeFile = fileInputRef.current?.files?.[0];
     if (!codeFile) {
       setUploadError("Please choose a code file before submitting.");
@@ -253,6 +353,7 @@ export default function Test() {
       setUploading(true);
       const payload = new FormData();
       payload.append("video", videoBlob, `${id}.webm`);
+      payload.append("audio", audioBlob, `${id}-audio.webm`);
       payload.append("code", codeFile, codeFile.name);
       payload.append("problem_id", problem.id);
       payload.append("duration_sec", String(timeLimitSec));

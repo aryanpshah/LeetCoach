@@ -92,6 +92,7 @@ def infer_sentiment(row):
 @app.post("/video")
 def video(
     video: Annotated[UploadFile, File()],
+    audio: Annotated[UploadFile, File()] = None,
     code: Annotated[UploadFile, File()] = None,
     problem_id: Annotated[str, Form()] = None,
     duration_sec: Annotated[str, Form()] = None
@@ -372,10 +373,47 @@ def video(
     import tempfile
     import shutil
 
+    temp_audio_path = None
+    audio_transcript = None
+    audio_received = False
+
+    def cleanup_audio():
+        nonlocal temp_audio_path
+        if temp_audio_path and os.path.exists(temp_audio_path):
+            try:
+                os.remove(temp_audio_path)
+            except OSError:
+                pass
+        temp_audio_path = None
+
     # Save uploaded file to a temporary location
     temp_video_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
     with open(temp_video_path, "wb") as buffer:
         shutil.copyfileobj(video.file, buffer)
+
+    if audio is not None:
+        try:
+            audio_suffix = os.path.splitext(audio.filename or "")[1] or ".webm"
+            audio_temp = tempfile.NamedTemporaryFile(delete=False, suffix=audio_suffix)
+            temp_audio_path = audio_temp.name
+            audio_temp.close()
+            with open(temp_audio_path, "wb") as audio_buffer:
+                shutil.copyfileobj(audio.file, audio_buffer)
+            audio_received = True
+        except Exception as exc:
+            print(f"Audio upload save failed: {exc}")
+            cleanup_audio()
+            audio_received = False
+
+        if temp_audio_path:
+            try:
+                model = whisper.load_model("turbo")
+                result = model.transcribe(temp_audio_path)
+                audio_transcript = (result.get("text") or "").strip()
+            except Exception as exc:
+                print(f"Audio transcription failed: {exc}")
+            finally:
+                cleanup_audio()
 
     # Load video from saved file
     cap = cv2.VideoCapture(temp_video_path)
@@ -518,8 +556,10 @@ def video(
             json_str = match.group(0)
             data = json.loads(json_str)
         else:
+            cleanup_audio()
             return JSONResponse(status_code=400, content={"error": "Invalid JSON from Gemini"})
     except Exception as e:
+        cleanup_audio()
         return JSONResponse(status_code=500, content={"error": "Failed to parse response"})
 
 
@@ -531,7 +571,13 @@ def video(
     cap.release()
     os.remove(temp_video_path)
 
-    return {"status": "success", **data}
+    payload = {"status": "success", **data}
+    if audio_transcript:
+        payload["audio_transcript"] = audio_transcript
+    if audio_received:
+        payload["audio_received"] = True
+    cleanup_audio()
+    return payload
 
 
 @app.get("/audio")
