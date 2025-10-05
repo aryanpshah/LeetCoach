@@ -13,6 +13,7 @@ from typing import Annotated
 import json
 import re
 import os
+import cv2
 
 app = FastAPI()
 app.add_middleware(
@@ -27,7 +28,7 @@ app.add_middleware(
 def health():
     return {"ok": True}
 
-
+"""
 def extract_landmarks(results, frame_idx):
     data = []
     for landmark_type, landmarks in {
@@ -85,7 +86,7 @@ def infer_sentiment(row):
         return 'neutral'
 
 # ------------------ POST /video ------------------
-
+"""
 """
 @app.post("/video")
 def video(
@@ -173,14 +174,6 @@ def video(
     problem_id: Annotated[str, Form()] = None,
     duration_sec: Annotated[str, Form()] = None
 ):
-    import tempfile, shutil, os
-    import cv2
-
-    # Save video to disk
-    temp_video_path = tempfile.NamedTemporaryFile(delete=False, suffix=".webm").name
-    with open(temp_video_path, "wb") as buffer:
-        shutil.copyfileobj(video.file, buffer)
-
 
     # Convert List to CSV for data analysis
     # Extract landmarks from MediaPipe results
@@ -379,7 +372,7 @@ def video(
     import shutil
 
     # Save uploaded file to a temporary location
-    temp_video_path = tempfile.NamedTemporaryFile(delete=False, suffix=".webm").name
+    temp_video_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
     with open(temp_video_path, "wb") as buffer:
         shutil.copyfileobj(video.file, buffer)
 
@@ -389,6 +382,8 @@ def video(
     # Store results for CSV export
     all_results = []
     frame_idx = 0
+
+    print("before loop")
 
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         while cap.isOpened():
@@ -430,6 +425,7 @@ def video(
             # Save results for export
             all_results.append((frame_idx, results))
             frame_idx += 1
+            print(frame_idx)
 
             if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
@@ -446,7 +442,7 @@ def video(
 
     # Load and display the first few rows of the CSV
     df = pd.read_csv('landmarks.csv')
-    # print(df.head(100))  # Show first 10 rows
+    df.head(100)  # Show first 10 rows
 
     # Conduct Sentiment Analysis Based on Landmarks 
 
@@ -471,7 +467,8 @@ def video(
     right_raise_df = compute_hand_raise(right_hand_df, pose_df, 'right_hand')
     left_speed_df = compute_hand_speed(left_hand_df, 'left_hand')
     right_speed_df = compute_hand_speed(right_hand_df, 'right_hand')
-
+    print(shoulder_tilt_df.head())
+    print(shoulder_tilt_df.index.names)
     # Merge all features safely
     features_df = shoulder_tilt_df.merge(spine_df, on='frame') \
                                 .merge(hand_raises_df, on='frame') \
@@ -524,7 +521,6 @@ def video(
 
     # Now you can use it like a normal Python dict
     #return data
-    cap = cv2.VideoCapture(temp_video_path)
 
     # --- proceed with rest of your MediaPipe + CV processing logic ---
 
