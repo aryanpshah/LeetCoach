@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Landing from "./pages/Landing";
@@ -6,15 +6,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import ProblemSelect from "./pages/ProblemSelect";
 import Test from "./pages/Test";
-
-function Placeholder({ title, description }) {
-  return (
-    <div className="container py-5 text-white">
-      <h1 className="display-5 fw-semibold mb-3">{title}</h1>
-      {description && <p className="text-secondary mb-0">{description}</p>}
-    </div>
-  );
-}
+import Report from "./pages/Report";
 
 export default function App() {
   return (
@@ -27,10 +19,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/select" element={<ProblemSelect />} />
           <Route path="/test/:id" element={<Test />} />
-          <Route
-            path="/report/:sessionId"
-            element={<Placeholder title="Report" description="Personalized coaching feedback will display here." />}
-          />
+          <Route path="/report/:sessionId" element={<Report />} />
         </Routes>
         <Footer />
       </div>
