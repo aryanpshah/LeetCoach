@@ -16,7 +16,6 @@ Live Demo: https://leetcoach-six.vercel.app/
 - Project Status
 - Roadmap
 - Contributing
-- License
 - Acknowledgements
 
 ## What LeetCoach Does
@@ -275,9 +274,6 @@ Steps:
 2. Make changes with clear commit messages.
 3. Add or update tests if behavior changes.
 4. Open a pull request with a focused description and screenshots if UI changes.
-
-## License
-MIT
 
 ## Acknowledgements
 - MediaPipe
